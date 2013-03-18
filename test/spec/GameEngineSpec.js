@@ -116,7 +116,7 @@ describe("The Football GameEngine", function() {
 			var p = engine.doRun();
 
 			expect(p.type).toEqual(PlayType.RUN);
-			expect(p.isInterception).toBeTruthy();
+			expect(p.isFumble).toBeTruthy();
 		  });
 	  });
 	  

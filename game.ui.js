@@ -37,7 +37,11 @@ var footballModule = (function($) {
 			20, 12);
 		
 		ctx.font = "bold 12px sans-serif";
-		ctx.fillText(e.type + " for " + e.yards, 330, y + 7);
+		var text = "";
+		if (e.isFumble) text = "Fumble!"
+		else if (e.isInterception) text = "Intercepted!"
+		else text = e.type + " for " + e.yards;
+		ctx.fillText(text, 330, y + 7);
 	}
 	function drawNewPlay(p) {
 		shiftContext(ctx, 400, 800, 0, 40);   
@@ -80,7 +84,7 @@ var footballModule = (function($) {
 			$('#currDown').html(game.Game._down);
 			drawNewPlay(p);
 			setControlColorForTeam();
-			if (p.isInterception) alert('Intercepted!!!');
+			//if (p.isInterception) alert('Intercepted!!!');
 		};
 		game.scoreChangedCallback = function(g, t) {
 			$('#team1score').html(g.team1Score);

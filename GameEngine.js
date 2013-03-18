@@ -34,7 +34,9 @@ var Football = {
 		//this.type = function() { return _type; }
 		this.type = t;
 		this.yards = y;
-		this.isInterception = null;
+		this.isInterception = false;
+		this.isFumble = false;
+		this.isFumbleOrInterception = function() { return this.isInterception || this.isFumble };
 	},
 
 	Engine: function AmericanFootballGameEngine() {
@@ -73,7 +75,7 @@ var Football = {
 			if (this.Game._ytd <= 0) {
 				this.resetDown();
 			}
-			if (this.Game._down > 4 || p.isInterception) { 
+			if (this.Game._down > 4 || p.isFumbleOrInterception()) { 
 				this.switchPossession();
 			}
 			
@@ -113,7 +115,7 @@ var Football = {
 			this.Game._possession = this.eventGen.randomTwo(this.Game._team1, this.Game._team2);
 		}
 		this.moveBallForCurrentTeam = function(p) {
-			if (p.isInterception) p.yards = 0;
+			if (p.isFumbleOrInterception()) p.yards = 0;
 			this.moveBallForTeam(this.Game._possession, p.yards);
 		}
 		this.moveBallForTeam = function(team, yards) {
@@ -141,7 +143,7 @@ var Football = {
 		// have some random multiplier on the maxes, to allow for big ones occasionally
 		this._maxPassYards = 30;
 		this._passInterceptionChance = .17;
-		this._maxRunYards = 10; 
+		this._maxRunYards = 12; 
 		this._fumbleChance = .04;
 		
 		this.randomTwo = function(one, two) {
@@ -163,7 +165,7 @@ var Football = {
 				this.randomYards(this._maxRunYards));
 
 			if (Math.random() <= this._fumbleChance) {
-				p.isInterception = true;
+				p.isFumble = true;
 			}
 			return p;
 		}
