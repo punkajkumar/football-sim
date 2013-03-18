@@ -125,14 +125,14 @@ describe("The Football GameEngine", function() {
 			var t1 = new Football.Team("Redskins");
 			engine.startNewGame(t1, new Football.Team("Cowboys"));
 			engine.Game._ballAtYard = 101;
-			expect(engine.isTouchDown()).toEqual(t1);
+			expect(engine.isTouchDown()).toEqual("1");
 		  });
 		  
 		  it("team2 is in their endzone", function() {
 			var t2 = new Football.Team("Cowboys");
 			engine.startNewGame(new Football.Team("Redskins"), t2);
 			engine.Game._ballAtYard = -1;
-			expect(engine.isTouchDown()).toEqual(t2);
+			expect(engine.isTouchDown()).toEqual("2");
 		  });
 	  });
 

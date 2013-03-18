@@ -64,36 +64,11 @@ var Football = {
 			this.Game._plays.push(p);
 			
 			this.moveBallForCurrentTeam(p);
-			var itd = this.isTouchDown();
-			if (itd == this.Game._team1) {
-				if (this.Game._possession == this.Game._team2) {
-					// safety
-					this.Game.team2Score += 2;
-					this.switchPossession(50); // simplifying, no kick
-				} else {
-					this.Game.team1Score += 6;
-					if (this.playCallback !== null) { this.playCallback(p) }
-					this.switchPossession(50);
-				}
-				if (this.scoreChangedCallback !== null) 
-					this.scoreChangedCallback(this.Game, "1")
-				return;
-			} else if (itd) {
-				if (this.Game._possession == this.Game._team1) {
-					// safety
-					this.Game.team1Score += 2;
-					if (this.playCallback !== null) { this.playCallback(p) }
-					this.switchPossession(50); // simplifying, no kick
-				} else {
-					this.Game.team2Score += 6;
-					if (this.playCallback !== null) { this.playCallback(p) }
-					this.switchPossession(50);
-				}
-				if (this.scoreChangedCallback !== null)
-					this.scoreChangedCallback(this.Game, "2")
-				return;
-			}
+			var tdTeamNum = this.isTouchDown();
+			
 			this.Game._ytd -= p.yards;
+			
+			this.handleScore(tdTeamNum, p);
 		
 			if (this.Game._ytd <= 0) {
 				this.resetDown();
@@ -102,14 +77,36 @@ var Football = {
 				this.switchPossession();
 			}
 			
-			if (this.playCallback !== null) { this.playCallback(p) }
+			if (tdTeamNum == null && 
+				this.playCallback !== null) { this.playCallback(p) }
 			
 			return p;
 		}
 		
+		this.handleScore = function(teamNum, p) {
+			//teamNum is the offensive team when the ball is in that opposing team's endzone
+			if (teamNum == null) return;
+			// then the ball is in an endzone - so either a safety or TD
+			// depending on who has possession
+			// (notify observer of new play before changing possession)
+			if (this.playCallback !== null) { this.playCallback(p) }
+			
+			// now score it
+			if (this.Game._possession == this.Game['_team'+(teamNum=="1"?"2":"1")]) {
+				// safety
+				this.Game['team' + teamNum + 'Score'] += 2;
+				this.switchPossession(50); // simplifying, no kick
+			} else {
+				this.Game['team' + teamNum + 'Score'] += 6;
+				this.switchPossession(50);
+			}
+			if (this.scoreChangedCallback !== null) 
+				this.scoreChangedCallback(this.Game, teamNum)
+		}
+		
 		this.isTouchDown = function() {
-			if (this.Game._ballAtYard >= 100) return this.Game._team1;
-			if (this.Game._ballAtYard <= 0) return this.Game._team2;
+			if (this.Game._ballAtYard >= 100) return "1";
+			if (this.Game._ballAtYard <= 0) return "2";
 			return null;
 		}
 		this.setPossessionWithCoinFlip = function() {
