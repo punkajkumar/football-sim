@@ -24,69 +24,100 @@ describe("The Football GameEngine", function() {
 	describe("When in play", function() {
 	  it("doPlay creates and records a play", function() {
 		engine.startNewGame(new Football.Team("Redskins"), new Football.Team("Cowboys"));
-		engine.doPlay();
+		engine.doPlay(new Football.Play(PlayType.PASS, 10));
 		
 		expect(engine.getNumberOfPlays()).toEqual(1);
 	  });
 	  
-	  it("doPlay moves the ball", function() {
-		var t1 = new Football.Team("Redskins");
-		engine.startNewGame(t1, new Football.Team("Cowboys"));
-		engine.Game._possession = t1;
-		engine.doPlay(10);
-		
-		expect(engine.Game._ballAtYard).toEqual(60);
-	  });
-	  
-	  it("with a random # of yards", function() {
-		engine.startNewGame(new Football.Team("Redskins"), new Football.Team("Cowboys"));
-		var p = engine.doPlay();
-		
-		expect(p.yards % 1 === 0).toBeTruthy();
-	  });
-	  
-	  it("and a random type", function() {
-		engine.startNewGame(new Football.Team("Redskins"), new Football.Team("Cowboys"));
-		var p = engine.doPlay();
-		
-		expect(p.type !== null).toBeTruthy();
-	  });
-	  
-	  it("making >10 yards in 2 plays gets you a First Down", function() {
-		engine.startNewGame(new Football.Team("Redskins"), new Football.Team("Cowboys"));
-		engine.doPlay(1);
-		expect(engine.Game._down).toEqual(2);
-		engine.doPlay(10);
-		expect(engine.Game._down).toEqual(1);
-	  });
-	  
-	  it("making 10 yards in 1 play gets you a First Down", function() {
-		engine.startNewGame(new Football.Team("Redskins"), new Football.Team("Cowboys"));
-		engine.doPlay(10);
-		expect(engine.Game._down).toEqual(1);
-	  });
+	  describe("doPlay ", function() {
+		  it("moves the ball", function() {
+			var t1 = new Football.Team("Redskins");
+			engine.startNewGame(t1, new Football.Team("Cowboys"));
+			engine.Game._possession = t1;
+			engine.doPlay(new Football.Play(PlayType.PASS, 10));
+			
+			expect(engine.Game._ballAtYard).toEqual(60);
+		  });
+		  
+		  it("and returns a valid play object", function() {
+			engine.startNewGame(new Football.Team("Redskins"), new Football.Team("Cowboys"));
+			var p = engine.doPlay(new Football.Play(PlayType.PASS, 10));
+			
+			expect(p.type).toEqual(PlayType.PASS);
+			expect(p.yards).toEqual(10);
+		  });
+		  
+		  it("making >10 yards in 2 plays gets you a First Down", function() {
+			engine.startNewGame(new Football.Team("Redskins"), new Football.Team("Cowboys"));
+			engine.doPlay(new Football.Play(PlayType.PASS, 1));
+			
+			expect(engine.Game._down).toEqual(2);
+			engine.doPlay(new Football.Play(PlayType.PASS, 10));
+			expect(engine.Game._down).toEqual(1);
+		  });
+		  
+		  it("making 10 yards in 1 play gets you a First Down", function() {
+			engine.startNewGame(new Football.Team("Redskins"), new Football.Team("Cowboys"));
+			engine.doPlay(new Football.Play(PlayType.PASS, 10));
+			expect(engine.Game._down).toEqual(1);
+		  });
 
-	  it("after 3 downs without making 10+ yards, possession the same", function() {
-		engine.startNewGame(new Football.Team("Redskins"), new Football.Team("Cowboys"));
-		var t1 = engine.Game._possession;
-		
-		engine.doPlay(1);
-		engine.doPlay(1);
-		engine.doPlay(1);
+		  it("after 3 downs without making 10+ yards, possession the same", function() {
+			engine.startNewGame(new Football.Team("Redskins"), new Football.Team("Cowboys"));
+			var t1 = engine.Game._possession;
+			
+			[1,1,1].forEach(doTestPass);
 
-		expect(engine.Game._possession).toEqual(t1);
+			expect(engine.Game._possession).toEqual(t1);
+		  });
+		  
+		  it("after 4th down without making 10+ yards, possession switches", function() {
+			engine.startNewGame(new Football.Team("Redskins"), new Football.Team("Cowboys"));
+			var t1 = engine.Game._possession;
+			
+			[1,1,1,1].forEach(doTestPass);
+
+			expect(engine.Game._possession).toNotEqual(t1);
+		  });
 	  });
 	  
-	  it("after 4th down without making 10+ yards, possession switches", function() {
-		engine.startNewGame(new Football.Team("Redskins"), new Football.Team("Cowboys"));
-		var t1 = engine.Game._possession;
-		
-		engine.doPlay(1);
-		engine.doPlay(1);
-		engine.doPlay(1);
-		engine.doPlay(1);
+	  describe("doPass ", function() {
+		  it("returns a valid Pass-type Play object", function() {
+			engine.startNewGame(new Football.Team("Redskins"), new Football.Team("Cowboys"));		
+			engine.eventGen.randomYards = function(m) { return 12; }
+			var p = engine.doPass();
 
-		expect(engine.Game._possession).toNotEqual(t1);
+			expect(p.type).toEqual(PlayType.PASS);
+			expect(p.yards).toEqual(12);
+		  });
+
+		  it("can return an interception", function() {
+			engine.startNewGame(new Football.Team("Redskins"), new Football.Team("Cowboys"));		
+			engine.eventGen._passInterceptionChance = 1;
+			var p = engine.doPass();
+
+			expect(p.type).toEqual(PlayType.PASS);
+			expect(p.isInterception).toBeTruthy();
+		  });
+	  });
+	  describe("doRuns ", function() {
+		  it("returns a valid Runs-type Play object", function() {
+			engine.startNewGame(new Football.Team("Redskins"), new Football.Team("Cowboys"));		
+			engine.eventGen.randomYards = function(m) { return 12; }
+			var p = engine.doRun();
+
+			expect(p.type).toEqual(PlayType.RUN);
+			expect(p.yards).toEqual(12);
+		  });
+
+		  it("can return a fumble", function() {
+			engine.startNewGame(new Football.Team("Redskins"), new Football.Team("Cowboys"));		
+			engine.eventGen._fumbleChance = 1;
+			var p = engine.doRun();
+
+			expect(p.type).toEqual(PlayType.RUN);
+			expect(p.isInterception).toBeTruthy();
+		  });
 	  });
 	  
 	  describe("Touchdowns are made when", function() {
@@ -111,8 +142,7 @@ describe("The Football GameEngine", function() {
 			var t2 = new Football.Team("Cowboys");
 			engine.startNewGame(t1, t2);
 			engine.Game._possession = t1;
-			engine.doPlay(11);
-			engine.doPlay(90);
+			[11,90].forEach(doTestPass);
 			expect(engine.Game._possession).toEqual(t2);
 		  });
 		  
@@ -121,8 +151,7 @@ describe("The Football GameEngine", function() {
 			var t2 = new Football.Team("Cowboys");
 			engine.startNewGame(t1, t2);
 			engine.Game._possession = t1;
-			engine.doPlay(11);
-			engine.doPlay(90);
+			[11,90].forEach(doTestPass);
 			expect(engine.Game._ballAtYard).toEqual(50);
 		  });
 	  });
@@ -133,8 +162,7 @@ describe("The Football GameEngine", function() {
 			var t2 = new Football.Team("Cowboys");
 			engine.startNewGame(t1, t2);
 			engine.Game._possession = t1;
-			engine.doPlay(11);
-			engine.doPlay(90);
+			[11,90].forEach(doTestPass);
 			expect(engine.Game.team1Score).toEqual(6);
 		  });
 		  
@@ -143,11 +171,13 @@ describe("The Football GameEngine", function() {
 			var t2 = new Football.Team("Cowboys");
 			engine.startNewGame(t1, t2);
 			engine.Game._possession = t2;
-			engine.doPlay(11);
-			engine.doPlay(90);
+			[11,90].forEach(doTestPass);
 			expect(engine.Game.team2Score).toEqual(6);
 			expect(engine.Game._possession).toEqual(t1);
 		  });
 	  });
+	  
+	  function doTestPass(e,i,a) { 
+	  engine.doPlay(new Football.Play(PlayType.PASS, e)) }
 	});
 });

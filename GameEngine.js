@@ -30,12 +30,11 @@ var Football = {
 		this.name = n;
 	},
 
-	Play: function Play(t, y, d, tm) {
+	Play: function Play(t, y) {
 		//this.type = function() { return _type; }
 		this.type = t;
 		this.yards = y;
-		this.down = d;
-		this.team = tm;
+		this.isInterception = null;
 	},
 
 	Engine: function AmericanFootballGameEngine() {
@@ -44,6 +43,7 @@ var Football = {
 		this.Game = new Football.Game();
 		this.playCallback = null;
 		this.scoreChangedCallback = null;
+		this.eventGen = new Football.EventGenerator(this.Game._fairness)
 	
 		this.startNewGame = function(team1, team2) {
 			this.Game._gameState = GameState.ON;
@@ -51,16 +51,19 @@ var Football = {
 			this.Game._team2 = team2;
 			this.setPossessionWithCoinFlip();
 		}
+
+		this.doPass = function() {
+			return this.doPlay(this.eventGen.generatePass());
+		}
+		this.doRun = function() {
+			return this.doPlay(this.eventGen.generateRun());
+		}
 		
-		this.doPlay = function(useYards) {			
-			var p = new Football.Play(
-				_randomHelper.randomTwo(PlayType.PASS, PlayType.RUN),
-				useYards || _randomHelper.randomYards(),
-				this.Game._down++,
-				this.Game._possession);
+		this.doPlay = function(p) {
+			++this.Game._down;
 			this.Game._plays.push(p);
 			
-			this.moveBallForCurrentTeam(p.yards);
+			this.moveBallForCurrentTeam(p);
 			var itd = this.isTouchDown();
 			if (itd == this.Game._team1) {
 				this.Game.team1Score += 6;
@@ -80,7 +83,7 @@ var Football = {
 			if (this.Game._ytd <= 0) {
 				this.resetDown();
 			}
-			if (this.Game._down > 4) { 
+			if (this.Game._down > 4 || p.isInterception) { 
 				this.switchPossession();
 			}
 			
@@ -95,10 +98,11 @@ var Football = {
 			return null;
 		}
 		this.setPossessionWithCoinFlip = function() {
-			this.Game._possession = _randomHelper.randomTwo(this.Game._team1, this.Game._team2);
+			this.Game._possession = this.eventGen.randomTwo(this.Game._team1, this.Game._team2);
 		}
-		this.moveBallForCurrentTeam = function(yards) {
-			this.moveBallForTeam(this.Game._possession, yards);
+		this.moveBallForCurrentTeam = function(p) {
+			if (p.isInterception) p.yards = 0;
+			this.moveBallForTeam(this.Game._possession, p.yards);
 		}
 		this.moveBallForTeam = function(team, yards) {
 			if 		(team == this.Game._team1) { this.Game._ballAtYard += yards }
@@ -117,16 +121,43 @@ var Football = {
 		this.getNumberOfPlays = function() { return this.Game._plays.length; }
 		
 		// Private Members
-		var _randomHelper = new Football.EventGenerator(this.Game._fairness)
+		
 	},
 	
 	EventGenerator: function RandomHelper(f) {
+		//stats
+		// have some random multiplier on the maxes, to allow for big ones occasionally
+		this._maxPassYards = 30;
+		this._passInterceptionChance = .17;
+		this._maxRunYards = 10; 
+		this._fumbleChance = .04;
+		
 		this.randomTwo = function(one, two) {
 			return Math.random() <= _fairness ? one : two;
 		}
-		this.randomYards = function() {
+		this.generatePass = function() {
+			var p = new Football.Play(
+				PlayType.PASS,
+				this.randomYards(this._maxPassYards));
+
+			if (Math.random() <= this._passInterceptionChance) {
+				p.isInterception = true;
+			}
+			return p;
+		}
+		this.generateRun = function() {
+			var p = new Football.Play(
+				PlayType.RUN,
+				this.randomYards(this._maxRunYards));
+
+			if (Math.random() <= this._fumbleChance) {
+				p.isInterception = true;
+			}
+			return p;
+		}
+		this.randomYards = function(max) {
 			return Math.round(
-				(Math.random() * 25) * 
+				(Math.random() * max) * 
 				(Math.random() <= _negativeYardsChance ? -1 : 1));
 		}
 		var _fairness = f;

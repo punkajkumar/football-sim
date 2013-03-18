@@ -80,6 +80,7 @@ var footballModule = (function($) {
 			$('#currDown').html(game.Game._down);
 			drawNewPlay(p);
 			setControlColorForTeam();
+			if (p.isInterception) alert('Intercepted!!!');
 		};
 		game.scoreChangedCallback = function(g, t) {
 			$('#team1score').html(g.team1Score);
@@ -89,9 +90,9 @@ var footballModule = (function($) {
 				{backgroundColor : color}, 
 				{duration : 400, pulses : 1});
 		}
-		$('#playButton').click(function() { 
-			game.doPlay();
-		});
+		$('#passButton').click(function() { game.doPass(); });
+		$('#runButton').click(function() { game.doRun(); });
+		$('#puntButton').click(function() { alert('not supported yet'); });
 		
 		// Start the Game
 		t1 = new Football.Team("Redskins");
