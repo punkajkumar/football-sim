@@ -66,20 +66,35 @@ var Football = {
 			this.moveBallForCurrentTeam(p);
 			var itd = this.isTouchDown();
 			if (itd == this.Game._team1) {
-				this.Game.team1Score += 6;
-				this.switchPossession(50);
+				if (this.Game._possession == this.Game._team2) {
+					// safety
+					this.Game.team2Score += 2;
+					this.switchPossession(50); // simplifying, no kick
+				} else {
+					this.Game.team1Score += 6;
+					if (this.playCallback !== null) { this.playCallback(p) }
+					this.switchPossession(50);
+				}
 				if (this.scoreChangedCallback !== null) 
 					this.scoreChangedCallback(this.Game, "1")
 				return;
 			} else if (itd) {
-				this.Game.team2Score += 6;
-				this.switchPossession(50);
+				if (this.Game._possession == this.Game._team1) {
+					// safety
+					this.Game.team1Score += 2;
+					if (this.playCallback !== null) { this.playCallback(p) }
+					this.switchPossession(50); // simplifying, no kick
+				} else {
+					this.Game.team2Score += 6;
+					if (this.playCallback !== null) { this.playCallback(p) }
+					this.switchPossession(50);
+				}
 				if (this.scoreChangedCallback !== null)
 					this.scoreChangedCallback(this.Game, "2")
 				return;
 			}
 			this.Game._ytd -= p.yards;
-			
+		
 			if (this.Game._ytd <= 0) {
 				this.resetDown();
 			}
@@ -93,8 +108,8 @@ var Football = {
 		}
 		
 		this.isTouchDown = function() {
-			if (this.Game._ballAtYard > 100) return this.Game._team1;
-			if (this.Game._ballAtYard < 0) return this.Game._team2;
+			if (this.Game._ballAtYard >= 100) return this.Game._team1;
+			if (this.Game._ballAtYard <= 0) return this.Game._team2;
 			return null;
 		}
 		this.setPossessionWithCoinFlip = function() {

@@ -15,5 +15,6 @@ UI logic contained in a separate file, using the *module pattern*.
 
 How to Play
 ============
-For now things are simple, just click Play repeatedly.  The game never ends!
+Just click Run or Pass - Passing has a higher chance of interception, but has a higher potential gain.  
+and the game never ends!
 The ball icon shows where on the field the ball is, the colored bars the yardage gained/lost on each play.
