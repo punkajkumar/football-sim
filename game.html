@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" href="game.ui.css">
+	<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+	<script type="text/javascript" src="jquery.color-2.1.1.min.js"></script>
+	<script type="text/javascript" src="jquery.pulse.min.js"></script>
+	<script type="text/javascript" src="GameEngine.js"></script>
+	<script type="text/javascript" src="game.ui.js"></script>
+	<script>
+		$(function() { footballModule.initialize() } );
+	</script>
+</head>
+<body>
+<!-- Left Side: Orange[team 1], Right Side: Blue[team 2] -->
+<canvas id="canvasHeader" width="400" height="20" style="position: absolute; top: 0px;"></canvas>
+<canvas id="canvas" width="400" height="800" style="position: absolute; top: 30px;"></canvas>
+<div class="controlPanel">
+	<div id="scoreContainer">
+		<div style="float:left; margin-right:40px;">
+			Redskins <div class="bigText" id="team1score">0</div></div>
+		<div>
+			Cowboys <div class="bigText" id="team2score">0</div></div>
+	</div>
+	<div class="inControl">
+		<div class="stats">
+			<div><span id="currDown">1</span> and <span id="ytd">10</span></div>
+			<div>@ <span class="score" id="ballAt">50</span></div>
+		</div>
+		<button id="playButton" class="playButton">Play</button>
+	</div>
+</div>
+</body>
+</html>
